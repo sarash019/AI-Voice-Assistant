@@ -30,18 +30,25 @@ export const VoiceAssistant = () => {
   ]);
 
   const handleStartRecording = () => {
+    console.log("VoiceAssistant: Starting recording...");
     setIsRecording(true);
     toast.success("Recording started... Speak now!");
   };
 
-  const handleStopRecording = (audioBlob: Blob) => {
+  const handleStopRecording = () => {
+    console.log("VoiceAssistant: Stopping recording...");
+    setIsRecording(false);
+  };
+
+  const handleRecordingComplete = (audioBlob: Blob) => {
+    console.log("VoiceAssistant: Recording completed, blob size:", audioBlob.size);
     setIsRecording(false);
     setIsProcessing(true);
     
     // Add user message placeholder
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: "Voice message recorded",
+      content: `Voice message recorded (${Math.round(audioBlob.size / 1024)}KB)`,
       role: "user",
       timestamp: new Date(),
       isAudio: true,
@@ -49,11 +56,11 @@ export const VoiceAssistant = () => {
     
     setMessages(prev => [...prev, userMessage]);
     
-    // Simulate processing
+    // Simulate processing (replace with actual backend call)
     setTimeout(() => {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I heard you! This is where I would process your voice and respond. Backend integration coming soon!",
+        content: "I received your voice message! This is where I would process your audio and respond. Backend integration coming soon!",
         role: "assistant",
         timestamp: new Date(),
       };
@@ -65,7 +72,8 @@ export const VoiceAssistant = () => {
     }, 2000);
   };
 
-  const handleError = (error: string) => {
+  const handleRecordingError = (error: string) => {
+    console.error("VoiceAssistant: Recording error:", error);
     setIsRecording(false);
     setIsProcessing(false);
     toast.error(error);
@@ -109,7 +117,7 @@ export const VoiceAssistant = () => {
                         ? "animate-recording-pulse bg-voice-recording hover:bg-voice-recording/90" 
                         : "animate-pulse-glow bg-gradient-to-r from-voice-primary to-voice-secondary hover:from-voice-primary/90 hover:to-voice-secondary/90"
                     }`}
-                    onClick={isRecording ? () => {} : handleStartRecording}
+                    onClick={isRecording ? handleStopRecording : handleStartRecording}
                     disabled={isProcessing}
                   >
                     {isRecording ? (
@@ -146,8 +154,8 @@ export const VoiceAssistant = () => {
                 {/* Voice Recorder */}
                 <VoiceRecorder
                   isRecording={isRecording}
-                  onRecordingComplete={handleStopRecording}
-                  onError={handleError}
+                  onRecordingComplete={handleRecordingComplete}
+                  onError={handleRecordingError}
                 />
               </div>
             </div>
